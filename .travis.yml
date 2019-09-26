@@ -1,0 +1,20 @@
+sudo: required
+services:
+ - docker
+
+before_install:
+ - docker build -t aye20dockerhub/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+ - docker run -e CI=true aye20dockerhub/react-test npm test -- --coverage
+
+after_success:
+ - docker build -t aye20dockerhub/multi-client ./client
+ - docker build -t aye20dockerhub/multi-nginx ./nginx
+ - docker build -t aye20dockerhub/multi-server ./server
+ - docker build -t aye20dockerhub/multi-worker ./worker
+ - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+ - docker push aye20dockerhub/multi-client
+ - docker push aye20dockerhub/multi-nginx
+ - docker push aye20dockerhub/multi-server
+ - docker push aye20dockerhub/multi-worker
